@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+{% block title %}{{ post.title }}{% endblock %}
+{% block content %}
+
+<p class="post-title">{{ post.title }}</p>
+<a href="/">← Back to Feed</a>
+<div class="image-carousel">
+        <div class="full-image">
+            <button id="prev"><</button>
+            <div class="full-image-container"></div>
+            <button id="next">></button>
+        </div>
+        <div class="preview-images">
+            {% for file in post_files %}
+                {% if ".mp4" in file.file.url|lower or ".webm" in file.file.url|lower or ".ogg" in file.file.url|lower or ".mov" in file.file.url|lower %}
+                    <video src="{{ file.file.url }}" class="preview-image"></video>
+                {% else %}
+                    <img src="{{ file.file.url }}" alt="Post Image" class="preview-image">
+                {% endif %}
+            {% endfor %}
+        </div>
+</div>
+
+<div class="asides">
+    <div class="alide left">
+        <strong>Comments:</strong>
+        <div class="comments">
+            <div class="add-comment">
+                <textarea id="comment" rows="5" placeholder="Add a comment..." required></textarea>
+                <button onclick="submitComment()" style="width: 100%;">Comment</button>
+            </div>
+            <br>
+            {% for comment in comments %}
+                <div class="comment">
+                    <strong>{{ comment.author.username }}</strong> - {{ comment.created_at|date:"SHORT_DATETIME_FORMAT" }} {{ comment.comment|linebreaks }}
+                </div>
+                {% if not forloop.last %}<hr>{% endif %}
+            {% empty %}
+                <p>No comments yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="aside right">
+        <p class="post-title">{{ post.title }}</p>
+        <p>{{ post.description }}</p>
+        <div class="social-stuff">
+            <div class="up-down-vote">
+                <button id="like-{{ post.slug }}" onclick="likePost('{{ post.slug }}')"><img src="/static/src/icons/like.svg" alt="Like">{{ post.likes.count }}</button>
+                <button id="dislike-{{ post.slug }}" onclick="dislikePost('{{ post.slug }}')"><img src="/static/src/icons/dislike.svg" alt="Dislike">{{ post.dislikes.count }}</button>
+            </div>
+           
+        </div>
+    </div>
+</div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const start = urlParams.get('start');
+
+    function submitComment() {
+        const commentText = document.getElementById('comment').value;
+        if (!commentText.trim()) {
+            alert('Comment cannot be empty.');
+            return;
+        }
+
+        fetch("{% url 'add_comment' post.slug %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ comment: commentText })
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Failed to submit comment.');
+            }
+        });
+    }
+        
+    // The JS to handle populating the full screen image and moving the preview images along
+    document.addEventListener('DOMContentLoaded', function () {
+        const fullImageContainer = document.querySelector('.full-image-container');
+        const previewImages = document.querySelectorAll('.preview-images img, .preview-images video');
+        const prevButton = document.getElementById('prev');
+        const nextButton = document.getElementById('next');
+        let currentIndex = 0;
+
+        function showImage(index) {
+            fullImageContainer.innerHTML = '';
+            const file = previewImages[index].cloneNode(true);
+            // remove the preview-image class if it's an image
+            if (file.tagName.toLowerCase() === 'img') {
+                file.classList.remove('preview-image');
+            }
+            if (file.tagName.toLowerCase() === 'video') {
+                file.controls = true;
+                file.autoplay = true;
+                file.playsInline = true;
+            }
+            fullImageContainer.appendChild(file);
+        }
+
+        previewImages.forEach((img, index) => {
+            img.addEventListener('click', () => {
+                currentIndex = index;
+                showImage(currentIndex);
+            });
+        });
+
+        prevButton.addEventListener('click', () => {
+            currentIndex = (currentIndex - 1 + previewImages.length) % previewImages.length;
+            showImage(currentIndex);
+        });
+
+        nextButton.addEventListener('click', () => {
+            currentIndex = (currentIndex + 1) % previewImages.length;
+            showImage(currentIndex);
+        });
+
+        // Show the first image initially
+        if (previewImages.length > 0) {
+            if (start && !isNaN(start) && start >= 0 && start < previewImages.length) {
+                currentIndex = parseInt(start);
+            } else {
+                currentIndex = 0;
+            }
+
+            showImage(currentIndex);
+
+        }
+    });
+
+    likePost = function (postSlug) {
+        fetch('/post/' + postSlug + '/like/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    post_slug: postSlug
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data) {
+                    document.getElementById('like-' + postSlug).innerHTML =
+                        '<img src="/static/src/icons/like.svg" alt="Like">' + data.likes;
+                    document.getElementById('dislike-' + postSlug).innerHTML =
+                        '<img src="/static/src/icons/dislike.svg" alt="Dislike">' + data.dislikes;
+                } else {
+                    alert('Error liking post.');
+                }
+            });
+    };
+
+    dislikePost = function (postSlug) {
+        fetch('/post/' + postSlug + '/dislike/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    post_slug: postSlug
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data) {
+                    document.getElementById('like-' + postSlug).innerHTML =
+                        '<img src="/static/src/icons/like.svg" alt="Like">' + data.likes;
+                    document.getElementById('dislike-' + postSlug).innerHTML =
+                        '<img src="/static/src/icons/dislike.svg" alt="Dislike">' + data.dislikes;
+                } else {
+                    alert('Error disliking post.');
+                }
+            });
+    };
+</script>
+{% endblock %}

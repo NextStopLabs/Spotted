@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}Upload Mod{% endblock %}
+{% block content %}
+<div class="mod-details">
+  <h2>Upload a New Mod</h2>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="button">Upload Mod</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<script>
+    function renderFeed(data) {
+        const feedDiv = document.getElementById('feed');
+        feedDiv.innerHTML = '';
+        
+        for (const post of data.posts) {
+            const postDiv = document.createElement('div');
+            postDiv.className = 'post';
+
+            // Build gallery HTML
+            let galleryHTML = '';
+            const files = post.files || [];
+            const full_file_count = post.full_file_count || files.length;
+
+            for (let i = 0; i < files.length; i++) {
+                const fileUrl = files[i].url;
+                const isVideo = /\.(mp4|webm|ogg|mov)$/i.test(fileUrl);
+                const isHiddenExtra = i === 5 && full_file_count > 6;
+                let extra_class = '';
+                let extra_class_2 = '';
+
+                if (full_file_count === 1) {
+                    extra_class = 'single-file-image';
+                    extra_class_2 = 'single-file';
+                } else if (full_file_count === 2) {
+                    extra_class = 'two-files-image';
+                    extra_class_2 = 'two-files';
+                } else {
+                    extra_class = '';
+                }
+
+                galleryHTML += `
+                    <div class="thumb" style="position:relative;">
+                        <span class="thumb-overlay ${extra_class_2}" onclick="window.location.href='/post/${post.slug}/?start=${i}'"></span>
+                        ${isVideo
+                            ? `<video muted preload="metadata" playsinline loop class="${extra_class}">
+                                   <source src="${fileUrl}" type="video/mp4">
+                                   Your browser does not support the video tag.
+                               </video>
+                               <span class="play-icon" aria-hidden="true"></span>`
+                            : `<img src="${fileUrl}" alt="Post Image" class="${extra_class}">`}
+                        ${isHiddenExtra
+                            ? `<span class="thumb-overlay-dark">+${full_file_count - 6}</span>`
+                            : ''}
+                    </div>`;
+
+                // Stop rendering extra thumbnails after 6th
+                if (isHiddenExtra) break;
+            }
+
+            // Comments section
+            let commentsHTML = '';
+            if (post.recent_comments && post.recent_comments.length > 0) {
+                for (const comment of post.recent_comments) {
+                    commentsHTML += `
+                        <div class="comment">
+                            <strong>${comment.author}</strong> ${comment.comment}
+                        </div>`;
+                }
+            } else {
+                commentsHTML = `<p>No comments yet.</p>`;
+            }
+
+            let tags = '';
+            for (tag of post.tags) {
+                tags += `<a href=/search?tag=${tag}>${tag}</a> `;
+            }
+
+            // Post template
+            postDiv.innerHTML = `
+                <span class="post-title" onclick="window.location.href='/post/${post.slug}/'">
+                    ${post.author} | <span class="light">${new Date(post.created_at).toLocaleDateString()}</span>
+                </span>
+                <div class="asides">
+                    <div class="aside left">
+                        <div class="post-gallery">
+                            <div class="thumbnails">
+                                ${galleryHTML}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="aside right">
+                        <strong onclick="window.location.href='/post/${post.slug}/'">${post.title}</strong>
+                        <p class="tags">${tags}</p>
+                        <p>${post.description}</p>
+                        <div class="social-stuff">
+                            <div class="up-down-vote">
+                                <button id="like-${post.slug}" onclick="likePost('${post.slug}')">
+                                    <img src="/static/src/icons/like.svg" alt="Like"> ${post.likes}
+                                </button>
+                                <button id="dislike-${post.slug}" onclick="dislikePost('${post.slug}')">
+                                    <img src="/static/src/icons/dislike.svg" alt="Dislike"> ${post.dislikes}
+                                </button>
+                            </div>
+                            <strong>Comments:</strong>
+                            <div class="comments">
+                                ${commentsHTML}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <br><br>
+            `;
+
+            feedDiv.appendChild(postDiv);
+        }
+    }
+
+    async function getFollowingFeed() {
+        try {
+            const response = await fetch('/api/following_feed/');
+            const data = await response.json();
+
+            renderFeed(data);
+        } catch (err) {
+            console.error('Error fetching feed:', err);
+        }
+    }
+</script>
+
+<div>
+    <br>
+    <div class="feeds">
+        <button class="active" onclick="getFollowingFeed()">Following</button>
+        <button>For You</button>
+        <button>Trending</button>
+        <button>Upload</button>
+        <button onclick="window.location.href='/mod/'">Mods</button>
+    </div>
+    <div class="posts" id="feed">
+    </div>
+</div>
+
+<script>
+    // Simple toggle to reveal more files per post
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.more-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var postId = btn.getAttribute('data-post-id');
+                var moreDiv = document.getElementById('more-' + postId);
+                if (!moreDiv) return;
+                if (moreDiv.style.display === 'none' || moreDiv.style.display === '') {
+                    moreDiv.style.display = 'grid';
+                    moreDiv.setAttribute('aria-hidden', 'false');
+                    btn.textContent = 'Show less';
+                } else {
+                    moreDiv.style.display = 'none';
+                    moreDiv.setAttribute('aria-hidden', 'true');
+                    btn.textContent = 'More (' + (moreDiv.querySelectorAll('.thumb').length) +
+                        ')';
+                }
+            });
+        });
+    });
+
+    getFollowingFeed();
+    
+
+    likePost = function (postSlug) {
+        fetch('/post/' + postSlug + '/like/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    post_slug: postSlug
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data) {
+                    document.getElementById('like-' + postSlug).innerHTML =
+                        '<img src="/static/src/icons/like.svg" alt="Like">' + data.likes;
+                    document.getElementById('dislike-' + postSlug).innerHTML =
+                        '<img src="/static/src/icons/dislike.svg" alt="Dislike">' + data.dislikes;
+                } else {
+                    alert('Error liking post.');
+                }
+            });
+    };
+
+    dislikePost = function (postSlug) {
+        fetch('/post/' + postSlug + '/dislike/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    post_slug: postSlug
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data) {
+                    document.getElementById('like-' + postSlug).innerHTML =
+                        '<img src="/static/src/icons/like.svg" alt="Like">' + data.likes;
+                    document.getElementById('dislike-' + postSlug).innerHTML =
+                        '<img src="/static/src/icons/dislike.svg" alt="Dislike">' + data.dislikes;
+                } else {
+                    alert('Error disliking post.');
+                }
+            });
+    };
+</script>
+
+{% endblock %}

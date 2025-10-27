@@ -1,0 +1,191 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>{% block title %}{% endblock %} - Spotted</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <!-- CSS -->
+        <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+        <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
+        <!-- End CSS -->
+
+        <!-- Favicons -->
+        <link rel="shortcut icon" href="/static/src/favicons/favicon.ico" type="image/x-icon">
+        <link rel="apple-touch-icon" sizes="180x180" href="/static/src/favicons/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="/static/src/favicons/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/static/src/favicons/favicon-16x16.png">
+        <link rel="manifest" href="/static/src/favicons/site.webmanifest">
+        <!-- End Favicons -->
+
+        <!-- Google Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Single:wght@100..900&family=Chakra+Petch:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Saira:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+        <!-- End Google Fonts -->
+    </head>
+    <body>
+        <header>
+            <div class="searchBar">
+                <form method="GET" action="{% url 'home' %}">
+                    <div class="logo">
+                        <a href="/"><img src="/static/src/favicons/Spotted 1x5.png" alt="LOGO"></a>
+                    </div>
+                    <input type="text" name="q" placeholder="search">
+                    <button type="submit">Search</button>
+                </form>
+            </div>
+        </header>
+        <main>
+            <div class="content">
+                {% block content %}
+
+                {% endblock %}
+            </div>
+            <div class="sidebar">
+                <h3>Following</h3>
+                <ul id="friends-list">
+                </ul>
+            </div>
+            <div class="image-popout" aria-hidden="true">
+                <button class="close-btn" aria-label="Close">&times;</button>
+                <div id="popout-media" class="popout-media"></div>
+            </div>
+        </main>
+        <script>
+            async function getFollowing() {
+                try {
+                    const response = await fetch('/api/following/');
+                    const data = await response.json();
+
+                    let friendsList = document.getElementById('friends-list');
+                    friendsList.innerHTML = '';
+                    for (const friend of data.people_following) {
+                        const li = document.createElement('li');
+                        li.innerHTML = `<a href="/u/${friend.username}/">${friend.username}</a>`;
+                        friendsList.appendChild(li);
+                    }
+                } catch (err) {
+                    console.error('Error fetching following:', err);
+                }
+            }
+
+            async function followUser(username) {
+                fetch(`/follow/${username}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    let followButton = document.getElementById('followButton');
+                    if (data.following === true) {
+                        followButton.textContent = 'Unfollow';
+                    } else if (data.following === false) {
+                        followButton.textContent = 'Follow';
+                    }
+                    // Optionally update UI
+                    getFollowing(); // Update friends list
+                })
+                .catch(error => console.error('Error:', error));
+            }
+            
+            document.addEventListener('DOMContentLoaded', function () {
+            var popout = document.querySelector('.image-popout');
+            var popMedia = document.getElementById('popout-media');
+            var closeBtn = popout && popout.querySelector('.close-btn');
+
+            function showPopout(src, type) {
+                if (!popout || !popMedia) return;
+                // clear existing
+                popMedia.innerHTML = '';
+
+                if (type === 'video') {
+                var v = document.createElement('video');
+                v.controls = true;
+                v.autoplay = true;
+                v.playsInline = true;
+                v.src = src;
+                v.style.maxWidth = '95%';
+                v.style.maxHeight = '90%';
+                popMedia.appendChild(v);
+                } else {
+                var i = document.createElement('img');
+                i.src = src;
+                i.alt = 'Image preview';
+                i.style.maxWidth = '95%';
+                i.style.maxHeight = '90%';
+                popMedia.appendChild(i);
+                }
+
+                popout.style.display = 'flex';
+                popout.setAttribute('aria-hidden', 'false');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function hidePopout() {
+                if (!popout || !popMedia) return;
+                popout.style.display = 'none';
+                popout.setAttribute('aria-hidden', 'true');
+                popMedia.innerHTML = '';
+                document.body.style.overflow = '';
+            }
+
+            // Delegate image/video clicks. Only items marked with class "clickable" (or their .thumb ancestor marked)
+            document.addEventListener('click', function (e) {
+                try {
+                var thumb = e.target.closest && e.target.closest('.thumb');
+                var mediaEl = null;
+
+                if (thumb) {
+                    // prefer clickable media inside thumb if present
+                    mediaEl = thumb.querySelector && (thumb.querySelector('img.clickable, video.clickable') || thumb.querySelector('img, video'));
+                }
+
+                if (!mediaEl) {
+                    mediaEl = e.target.closest && e.target.closest('img, video');
+                }
+
+                if (!mediaEl) return;
+                if (mediaEl.closest('.image-popout')) return; // clicked inside popout
+                if (mediaEl.closest('header')) return; // ignore header/logo
+
+                // require class "clickable" either on the media element itself or its .thumb ancestor
+                var hasClickable = (mediaEl.classList && mediaEl.classList.contains('clickable')) ||
+                           (thumb && thumb.classList && thumb.classList.contains('clickable'));
+                if (!hasClickable) return;
+
+                var src = mediaEl.tagName.toLowerCase() === 'video'
+                    ? (mediaEl.currentSrc || mediaEl.src || (mediaEl.querySelector && mediaEl.querySelector('source') && mediaEl.querySelector('source').src))
+                    : mediaEl.src;
+                var type = mediaEl.tagName.toLowerCase() === 'video' ? 'video' : 'image';
+                if (!src) return;
+                showPopout(src, type);
+                } catch (err) {
+                // silently ignore
+                }
+            });
+
+            // Close interactions
+            if (closeBtn) closeBtn.addEventListener('click', hidePopout);
+            if (popout) {
+                popout.addEventListener('click', function (e) {
+                if (e.target === popout) hidePopout();
+                });
+            }
+
+            // Escape key to close
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') hidePopout();
+            });
+            });
+
+            getFollowing();
+        </script>
+    </body>
+</html>

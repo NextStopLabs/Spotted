@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Upload New Version{% endblock %}
+{% block content %}
+<div class="mod-details">
+  <h2>Upload New Version for {{ mod.name }}</h2>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="button">Upload Version</button>
+  </form>
+  <p><a href="{% url 'mod_detail' mod.id %}">← Back to Mod</a></p>
+</div>
+{% endblock %}

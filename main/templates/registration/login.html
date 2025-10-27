@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<main class="content">
+  <div style="
+      background: var(--text-alt-color);
+      color: var(--text-color);
+      padding: 2em;
+      border-radius: 1em;
+      max-width: 400px;
+      margin: 4em auto;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  ">
+    <h2 style="text-align: center; color: var(--brand-color); margin-bottom: 1em;">Login</h2>
+
+    {% if form.errors %}
+      <div style="
+          background: rgba(255,0,0,0.1);
+          border: 1px solid var(--brand-color);
+          padding: 1em;
+          border-radius: 0.5em;
+          margin-bottom: 1em;
+          color: var(--text-color);
+      ">
+        ⚠️ Please correct the errors below.
+      </div>
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+      <div style="margin-bottom: 1em;">
+        <label for="{{ form.username.id_for_label }}" style="display:block; margin-bottom:0.3em;">Username</label>
+        {{ form.username }}
+      </div>
+
+      <div style="margin-bottom: 1.5em;">
+        <label for="{{ form.password.id_for_label }}" style="display:block; margin-bottom:0.3em;">Password</label>
+        {{ form.password }}
+      </div>
+
+      <button type="submit"
+        style="
+          width: 100%;
+          padding: 10px;
+          background-color: var(--brand-color);
+          color: var(--text-alt-color);
+          font-weight: bold;
+          border: none;
+          border-radius: 0.3em;
+          cursor: pointer;
+      ">
+        Log In
+      </button>
+    </form>
+
+    <p style="text-align:center; margin-top:1.5em;">
+      Don’t have an account?
+      <a href="{% url 'register' %}" style="color: var(--brand-color);">Sign up</a>
+    </p>
+  </div>
+</main>
+{% endblock %}
