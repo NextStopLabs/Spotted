@@ -141,7 +141,7 @@ def register(request):
         if form.is_valid():
             user = form.save()
             login(request, user)  # Auto-login after registration
-            return redirect('home')
+            return redirect('/')
     else:
         form = UserCreationForm()
 
