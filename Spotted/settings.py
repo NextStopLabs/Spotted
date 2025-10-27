@@ -28,10 +28,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-CSRF_TRUSTED_ORIGINS = [
-    "https://spotted.mybustimes.cc",
-    "http://spotted.mybustimes.cc",
-]
 
 # Application definition
 
@@ -82,12 +78,8 @@ WSGI_APPLICATION = 'Spotted.wsgi.application'
 
 DATABASES = {
     'default': {
-	'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DATABASE_NAME', 'spotted_db'),
-        'USER': os.getenv('DATABASE_USER', 'spotted_user'),
-        'PASSWORD': os.getenv('DATABASE_PASSWORD', 'spotted_pass'),
-        'HOST': os.getenv('DATABASE_HOST', 'db'),
-        'PORT': os.getenv('DATABASE_PORT', '5432'),
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
