@@ -12,6 +12,7 @@ urlpatterns = [
     path('u/<str:username>/', user_profile, name='user_profile'),
     path('accounts/register/', register, name='register'),
     path('accounts/login/', auth_views.LoginView.as_view(), name='login'),
+    path('accounts/profile/', go_to_home, name='profile'),
     path('accounts/<str:username>/', user_profile, name='user_profile'),
     path('post/create/', create_post, name='create_post'),
     path('post/<slug:slug>/', post_detail, name='post_detail'),

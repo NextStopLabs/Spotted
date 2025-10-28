@@ -10,6 +10,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import login
 from django.contrib.auth.forms import UserCreationForm
 
+def go_to_home(request):
+    return redirect('/mod/')
+
 def following_api(request):
     user = request.user
     if user.is_authenticated:
