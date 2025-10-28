@@ -39,6 +39,10 @@ document.getElementById('uploadForm').addEventListener('submit', function(e) {
   const xhr = new XMLHttpRequest();
   xhr.open('POST', form.action || window.location.href, true);
   xhr.setRequestHeader('X-CSRFToken', csrfToken);
+  // include cookies (session) in production if the site is on a different subdomain
+  xhr.withCredentials = true;
+  // mark as XMLHttpRequest for middleware that checks for AJAX
+  xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 
   xhr.upload.addEventListener('progress', function(e) {
     if (e.lengthComputable) {
@@ -49,12 +53,38 @@ document.getElementById('uploadForm').addEventListener('submit', function(e) {
   });
 
   xhr.onload = function() {
-    if (xhr.status === 200 || xhr.status === 201) {
+    if (xhr.status >= 200 && xhr.status < 300) {
       progressText.textContent = 'Upload complete!';
       progressBar.style.background = '#007bff';
-      window.location.reload(); // or redirect after upload
+      // optionally the server can respond with a redirect or JSON with a next URL
+      try {
+        const json = JSON.parse(xhr.responseText || '{}');
+        if (json.next) {
+          window.location.href = json.next;
+          return;
+        }
+      } catch (err) {
+        // response is not JSON, ignore
+      }
+      window.location.reload(); // default behaviour
     } else {
-      progressText.textContent = 'Upload failed. Please try again.';
+      // show detailed server error to help debugging in prod
+      let details = xhr.responseText ? xhr.responseText.substring(0, 2000) : '';
+      progressText.textContent = `Upload failed (${xhr.status} ${xhr.statusText}). See server response below.`;
+      // append a small preformatted area with response (truncated)
+      let pre = document.getElementById('uploadErrorDetails');
+      if (!pre) {
+        pre = document.createElement('pre');
+        pre.id = 'uploadErrorDetails';
+        pre.style.background = '#111';
+        pre.style.color = '#eee';
+        pre.style.padding = '8px';
+        pre.style.maxHeight = '240px';
+        pre.style.overflow = 'auto';
+        pre.style.marginTop = '8px';
+        progressContainer.appendChild(pre);
+      }
+      pre.textContent = details || '(no response body)';
       progressBar.style.background = '#dc3545';
       uploadBtn.disabled = false;
     }
