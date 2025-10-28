@@ -3,11 +3,70 @@
 {% block content %}
 <div class="mod-details">
   <h2>Upload New Version for {{ mod.name }}</h2>
-  <form method="post" enctype="multipart/form-data">
+
+  <form id="uploadForm" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit" class="button">Upload Version</button>
+    <button type="submit" class="button" id="uploadBtn">Upload Version</button>
   </form>
+
+  <div id="progressContainer" style="display:none; margin-top:15px;">
+    <div style="background:#ddd; border-radius:10px; overflow:hidden; height:20px;">
+      <div id="progressBar" style="width:0%; height:100%; background:#28a745; transition:width 0.3s;"></div>
+    </div>
+    <p id="progressText" style="margin-top:5px; font-size:14px;">Uploading... 0%</p>
+  </div>
+
   <p><a href="{% url 'mod_detail' mod.id %}">← Back to Mod</a></p>
 </div>
+
+<script>
+document.getElementById('uploadForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+
+  const form = e.target;
+  const formData = new FormData(form);
+  const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+  const progressContainer = document.getElementById('progressContainer');
+  const progressBar = document.getElementById('progressBar');
+  const progressText = document.getElementById('progressText');
+  const uploadBtn = document.getElementById('uploadBtn');
+
+  progressContainer.style.display = 'block';
+  uploadBtn.disabled = true;
+
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', form.action || window.location.href, true);
+  xhr.setRequestHeader('X-CSRFToken', csrfToken);
+
+  xhr.upload.addEventListener('progress', function(e) {
+    if (e.lengthComputable) {
+      const percent = Math.round((e.loaded / e.total) * 100);
+      progressBar.style.width = percent + '%';
+      progressText.textContent = `Uploading... ${percent}%`;
+    }
+  });
+
+  xhr.onload = function() {
+    if (xhr.status === 200 || xhr.status === 201) {
+      progressText.textContent = 'Upload complete!';
+      progressBar.style.background = '#007bff';
+      window.location.reload(); // or redirect after upload
+    } else {
+      progressText.textContent = 'Upload failed. Please try again.';
+      progressBar.style.background = '#dc3545';
+      uploadBtn.disabled = false;
+    }
+  };
+
+  xhr.onerror = function() {
+    progressText.textContent = 'Error during upload.';
+    progressBar.style.background = '#dc3545';
+    uploadBtn.disabled = false;
+  };
+
+  xhr.send(formData);
+});
+</script>
 {% endblock %}
