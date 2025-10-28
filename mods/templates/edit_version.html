@@ -8,6 +8,10 @@
     {{ form.as_p }}
     <button type="submit" class="button">Save Version</button>
   </form>
+  <form method="post" action="{% url 'mod_delete_version' version.id %}" style="margin-top: 20px;">
+    {% csrf_token %}
+    <button type="submit" class="button button-danger" onclick="return confirm('Are you sure you want to delete this version?');">Delete Version</button>
+  </form>
   <p><a href="{% url 'mod_detail' mod.id %}">← Back to Mod</a></p>
 </div>
 {% endblock %}

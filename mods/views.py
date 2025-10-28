@@ -8,6 +8,35 @@ def mod_home(request):
     return render(request, 'mod_home.html', {'all_mod': all_mod})
 
 @login_required
+def delete_mod(request, mod_id):
+    mod = get_object_or_404(Mod, id=mod_id)
+
+    # Only the creator can delete
+    if mod.creator != request.user:
+        return redirect('mod_detail', mod_id=mod.id)
+
+    if request.method == 'POST':
+        mod.delete()
+        return redirect('home')
+
+    return redirect('mod_home')
+
+@login_required
+def delete_mod_version(request, version_id):
+    version = get_object_or_404(ModVersion, id=version_id)
+    mod = version.mod
+
+    # Only the mod creator can delete versions
+    if mod.creator != request.user:
+        return redirect('mod_detail', mod_id=mod.id)
+
+    if request.method == 'POST':
+        version.delete()
+        return redirect('mod_detail', mod_id=mod.id)
+
+    return redirect('mod_detail', mod_id=mod.id)
+
+@login_required
 def mod_detail(request, mod_id):
     mod = get_object_or_404(Mod, id=mod_id)
     latest_version = mod.modversion_set.filter(private=False).order_by('-id').first()
