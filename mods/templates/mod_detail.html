@@ -8,9 +8,11 @@
     <div class="asides">
         <div class="aside left">
             <h2>{{ mod.name }}</h2>
-            <p>Updated at: {{ mod.updated_at }}</p>
+            
             <p>Created by: <a href="/u/{{ mod.creator.username }}">{{ mod.creator.username }}</a></p>
-            <p>Description: {{ mod.description|markdown }}</p>
+            <p>Updated at: {{ mod.updated_at }}</p>
+            <hr>
+            <p>{{ mod.description|markdown }}</p>
         </div>
         <div class="aside right">
             <h3>Latest Version</h3>
@@ -25,6 +27,35 @@
             {% else %}
                 <p>No versions available.</p>
             {% endif %}
+            <br><br>
+            <hr>
+            <h3>All Versions</h3>
+            <table>
+                <tr>
+                    <th>Version</th>
+                    <th>Changelog</th>
+                    <th>Download</th>
+                    {% if request.user == mod.creator %}
+                        <th>Edits</th>
+                    {% endif %}
+                </tr>
+                {% for version in all_versions %}
+                <tr>
+                    <td>{{ version.version_number }}</td>
+                    <td>{{ version.changelog|linebreaks }}</td>
+                    <td>
+                        {% if version.private %}
+                        <span class="badge">Private</span>
+                        {% else %}
+                        <a class="button" href="{{ version.zip_file.url }}">Download</a>
+                        {% endif %}
+                    </td>
+                    {% if request.user == mod.creator %}
+                        <td><a href="{% url 'edit_mod_version' version.id %}" class="small">Edit Version</a></td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </table>
         </div>
     </div>
         <div class="ad">
@@ -59,33 +90,7 @@
             {% endfor %}
         </div>
         <div class="aside right">
-            <h3>All Versions</h3>
-            <table>
-                <tr>
-                    <th>Version</th>
-                    <th>Changelog</th>
-                    <th>Download</th>
-                    {% if request.user == mod.creator %}
-                        <th>Edits</th>
-                    {% endif %}
-                </tr>
-                {% for version in all_versions %}
-                <tr>
-                    <td>{{ version.version_number }}</td>
-                    <td>{{ version.changelog|linebreaks }}</td>
-                    <td>
-                        {% if version.private %}
-                        <span class="badge">Private</span>
-                        {% else %}
-                        <a class="button" href="{{ version.zip_file.url }}">Download</a>
-                        {% endif %}
-                    </td>
-                    {% if request.user == mod.creator %}
-                        <td><a href="{% url 'edit_mod_version' version.id %}" class="small">Edit Version</a></td>
-                    {% endif %}
-                </tr>
-                {% endfor %}
-            </table>
+            
         </div>
     </div>
 </div>
