@@ -15,47 +15,55 @@
             <p>{{ mod.description|markdown }}</p>
         </div>
         <div class="aside right">
-            <h3>Latest Version</h3>
-            {% if request.user == mod.creator %}
-                <a href="{% url 'edit_mod' mod.id %}" class="button">Edit Mod</a>
-                <a href="{% url 'upload_mod_version' mod.id %}" class="button">Upload New Version</a>
-            {% endif %}
-            {% if latest_version %}
-                <p>Version: {{ latest_version.version_number }}</p>
-                <p>Changelog: {{ latest_version.changelog|linebreaks }}</p>
-                <a class="button" href="{{ latest_version.zip_file.url }}">Download</a>
-            {% else %}
-                <p>No versions available.</p>
-            {% endif %}
-            <br><br>
-            <hr>
-            <h3>All Versions</h3>
-            <table>
-                <tr>
-                    <th>Version</th>
-                    <th>Changelog</th>
-                    <th>Download</th>
-                    {% if request.user == mod.creator %}
-                        <th>Edits</th>
-                    {% endif %}
-                </tr>
-                {% for version in all_versions %}
-                <tr>
-                    <td>{{ version.version_number }}</td>
-                    <td>{{ version.changelog|linebreaks }}</td>
-                    <td>
-                        {% if version.private %}
-                        <span class="badge">Private</span>
-                        {% else %}
-                        <a class="button" href="{{ version.zip_file.url }}">Download</a>
+            <style>
+            .sticky {
+                position: sticky;
+                top: 50px;
+            }
+            </style>
+            <div class="sticky">
+                <h3>Latest Version</h3>
+                {% if request.user == mod.creator %}
+                    <a href="{% url 'edit_mod' mod.id %}" class="button">Edit Mod</a>
+                    <a href="{% url 'upload_mod_version' mod.id %}" class="button">Upload New Version</a>
+                {% endif %}
+                {% if latest_version %}
+                    <p>Version: {{ latest_version.version_number }}</p>
+                    <p>Changelog: {{ latest_version.changelog|linebreaks }}</p>
+                    <a class="button" href="{{ latest_version.zip_file.url }}">Download</a>
+                {% else %}
+                    <p>No versions available.</p>
+                {% endif %}
+                <br><br>
+                <hr>
+                <h3>All Versions</h3>
+                <table>
+                    <tr>
+                        <th>Version</th>
+                        <th>Changelog</th>
+                        <th>Download</th>
+                        {% if request.user == mod.creator %}
+                            <th>Edits</th>
                         {% endif %}
-                    </td>
-                    {% if request.user == mod.creator %}
-                        <td><a href="{% url 'edit_mod_version' version.id %}" class="small">Edit Version</a></td>
-                    {% endif %}
-                </tr>
-                {% endfor %}
-            </table>
+                    </tr>
+                    {% for version in all_versions %}
+                    <tr>
+                        <td>{{ version.version_number }}</td>
+                        <td>{{ version.changelog|linebreaks }}</td>
+                        <td>
+                            {% if version.private %}
+                            <span class="badge">Private</span>
+                            {% else %}
+                            <a class="button" href="{{ version.zip_file.url }}">Download</a>
+                            {% endif %}
+                        </td>
+                        {% if request.user == mod.creator %}
+                            <td><a href="{% url 'edit_mod_version' version.id %}" class="small">Edit Version</a></td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
         </div>
     </div>
         <div class="ad">
