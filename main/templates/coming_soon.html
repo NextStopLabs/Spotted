@@ -6,7 +6,9 @@
         <h1 style="text-align: center;">Coming Soon</h1>
         <a style="text-align: center; display: block;" href="/mod/" class="button">Explore Mods</a>
         <br>
+        {% if not request.user.is_authenticated %}
         <a style="text-align: center; display: block;" href="/u/login/" class="button">Login</a>
+        {% endif %}
     </div>
     <div class="ad">
         <ins class="adsbygoogle"
