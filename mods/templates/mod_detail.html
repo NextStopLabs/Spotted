@@ -11,6 +11,7 @@
             
             <p>Created by: <a href="/u/{{ mod.creator.username }}">{{ mod.creator.username }}</a></p>
             <p>Updated at: {{ mod.updated_at }}</p>
+            <p>Views: {{ mod.views }}</p>
             <hr>
             <p>{{ mod.description|markdown }}</p>
         </div>
@@ -42,6 +43,7 @@
                         <th>Version</th>
                         <th>Changelog</th>
                         <th>Download</th>
+                        <th>Downloads</th>
                         {% if request.user == mod.creator %}
                             <th>Edits</th>
                         {% endif %}
@@ -57,6 +59,7 @@
                             <a class="button" href="{{ version.zip_file.url }}">Download</a>
                             {% endif %}
                         </td>
+                        <td>{{ version.downloads }}</td>
                         {% if request.user == mod.creator %}
                             <td><a href="{% url 'edit_mod_version' version.id %}" class="small">Edit Version</a></td>
                         {% endif %}
