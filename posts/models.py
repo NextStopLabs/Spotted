@@ -6,6 +6,7 @@ class UserProfile(models.Model):
     username = models.CharField(max_length=50, blank=True)
     bio = models.TextField(blank=True)
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
+    oidc_sub = models.CharField(max_length=255, unique=True, null=True, blank=True)
 
     def __str__(self):
         return self.user.username

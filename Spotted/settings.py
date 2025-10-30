@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'main',
     'posts',
     'mods',
+    "mozilla_django_oidc",
 ]
 
 MIDDLEWARE = [
@@ -90,6 +91,26 @@ DATABASES = {
         'PORT': os.getenv('DATABASE_PORT', '5432'),
     }
 }
+
+
+AUTHENTICATION_BACKENDS = [
+    'main.backends.CustomOIDCAuthenticationBackend',
+    'django.contrib.auth.backends.ModelBackend',  # fallback to default just in case
+]
+
+OIDC_RP_CLIENT_ID = "0eee6f35-a1e5-482e-838d-26c56277fa6b"
+OIDC_RP_CLIENT_SECRET = "ay39MmvuUB2oPtQwQEH0YWoPuo228MZa"
+OIDC_OP_AUTHORIZATION_ENDPOINT = "https://secure.mybustimes.cc/authorize"
+OIDC_OP_TOKEN_ENDPOINT = "https://secure.mybustimes.cc/api/oidc/token"
+OIDC_OP_USER_ENDPOINT = "https://secure.mybustimes.cc/api/oidc/userinfo"
+OIDC_OP_JWKS_ENDPOINT = "https://secure.mybustimes.cc/.well-known/jwks.json"
+OIDC_OP_ISSUER = "https://secure.mybustimes.cc"
+OIDC_RP_SIGN_ALGO = "RS256"
+OIDC_RP_SCOPES = "openid email profile"
+OIDC_STORE_ACCESS_TOKEN = True
+OIDC_STORE_ID_TOKEN = True
+LOGIN_URL = "/oidc/authenticate/"
+LOGOUT_URL = "/oidc/logout/"
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
