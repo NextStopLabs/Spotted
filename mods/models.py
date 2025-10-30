@@ -6,6 +6,7 @@ class Mod(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     creator = models.ForeignKey(User, on_delete=models.CASCADE)
     description = models.TextField()
+    views = models.IntegerField(default=0)
 
     def __str__(self):
         return self.name
@@ -16,6 +17,7 @@ class ModVersion(models.Model):
     version_number = models.CharField(max_length=50)
     zip_file = models.FileField(upload_to='mods/')
     private = models.BooleanField(default=False)
+    downloads = models.IntegerField(default=0)
 
     def __str__(self):
         return f"{self.mod.name} - {self.version_number}"
