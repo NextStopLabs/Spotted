@@ -54,6 +54,9 @@ def mod_detail(request, mod_id):
     else:
         form = CommentForm()
 
+    mod.views += 1
+    mod.save()
+
     return render(request, 'mod_detail.html', {
         'mod': mod,
         'latest_version': latest_version,
@@ -61,6 +64,16 @@ def mod_detail(request, mod_id):
         'comments': comments,
         'form': form,
     })
+
+@login_required
+def download_mod_version(request, version_id):
+    version = get_object_or_404(ModVersion, id=version_id)
+
+    # Increment download count
+    version.downloads += 1
+    version.save()
+
+    return redirect(version.zip_file.url)
 
 @login_required
 def create_mod(request):

@@ -30,7 +30,7 @@
                 {% if latest_version %}
                     <p>Version: {{ latest_version.version_number }}</p>
                     <p>Changelog: {{ latest_version.changelog|linebreaks }}</p>
-                    <a class="button" href="{{ latest_version.zip_file.url }}">Download</a>
+                    <a class="button" href="{% url 'download_mod_version' latest_version.id %}">Download</a>
                 {% else %}
                     <p>No versions available.</p>
                 {% endif %}
