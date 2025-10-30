@@ -8,6 +8,11 @@
         <br>
         {% if not request.user.is_authenticated %}
         <a style="text-align: center; display: block;" href="/u/login/" class="button">Login</a>
+        {% else %}
+        <form style="padding: 0;" action="/u/logout/" method="post">
+            {% csrf_token %}
+            <button type="submit" style="width: 100%;">Logout</button>
+        </form>
         {% endif %}
     </div>
     <div class="ad">
