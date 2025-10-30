@@ -22,7 +22,7 @@ class CommentInline(admin.TabularInline):
 # --- Main Mod Admin ---
 @admin.register(Mod)
 class ModAdmin(admin.ModelAdmin):
-    list_display = ('name', 'description', 'latest_version', 'version_count', 'comment_count')
+    list_display = ('name', 'description', 'latest_version', 'version_count', 'comment_count', 'views')
     search_fields = ('name', 'description')
     inlines = [ModVersionInline, CommentInline]
 
@@ -42,7 +42,7 @@ class ModAdmin(admin.ModelAdmin):
 # --- ModVersion Admin ---
 @admin.register(ModVersion)
 class ModVersionAdmin(admin.ModelAdmin):
-    list_display = ('mod', 'version_number', 'zip_file')
+    list_display = ('mod', 'version_number', 'zip_file', 'downloads')
     search_fields = ('mod__name', 'version_number')
     list_filter = ('mod',)
 
