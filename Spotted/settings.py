@@ -98,8 +98,8 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',  # fallback to default just in case
 ]
 
-OIDC_RP_CLIENT_ID = "0eee6f35-a1e5-482e-838d-26c56277fa6b"
-OIDC_RP_CLIENT_SECRET = "ay39MmvuUB2oPtQwQEH0YWoPuo228MZa"
+OIDC_RP_CLIENT_ID = "590f5f3e-22dd-439f-96c4-9a0fbf59c4db"
+OIDC_RP_CLIENT_SECRET = "2vO00MVY9ukLndNOvapuLe1gGyIu5u2v"
 OIDC_OP_AUTHORIZATION_ENDPOINT = "https://secure.mybustimes.cc/authorize"
 OIDC_OP_TOKEN_ENDPOINT = "https://secure.mybustimes.cc/api/oidc/token"
 OIDC_OP_USER_ENDPOINT = "https://secure.mybustimes.cc/api/oidc/userinfo"
